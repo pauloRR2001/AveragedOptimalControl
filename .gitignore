@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/converters/.MATLABDriveTag
+/genTools/.MATLABDriveTag
+/perturbations/.MATLABDriveTag
+/plotters/.MATLABDriveTag
+/propagators/.MATLABDriveTag
+/.vs
