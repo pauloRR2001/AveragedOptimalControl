@@ -1,18 +1,26 @@
-function [x,y,z,vx,vy,vz] = kep2cart(a,ecc,inc,raan,argp,f,mu)
+function s_cart = KEP2CART(s_kep,mu)
+    a = s_kep(1);
+    ecc = s_kep(2);
+    inc = s_kep(3);
+    raan = s_kep(4);
+    argp = s_kep(5);
+    M = s_kep(6);
+    
+    E = M2E(M, ecc);
+    f = E2f(E,ecc);
+
     p = a*(1-ecc^2);
     hmag = sqrt(p*mu);
     rmag = (hmag^2/mu)/(1+ecc*cos(f));
     rVec = [rmag*cos(f), rmag*sin(f), 0];
     vVec = [-(mu/hmag)*sin(f), (mu/hmag)*(ecc+cos(f)), 0];
+
     DCM313 = D313(raan,inc,argp);
+
     r = DCM313 *rVec';
     v = DCM313 * vVec';
-    x = r(1);
-    y = r(2);
-    z = r(3);
-    vx = v(1);
-    vy = v(2);
-    vz = v(3);
+
+    s_cart = [r; v];
 end
 
 function [D313] = D313(RAAN,inc,argp)

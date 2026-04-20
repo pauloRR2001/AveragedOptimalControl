@@ -1,4 +1,4 @@
-function E = meanToEcc(M, e)
+function E = M2E(M, e)
     tol = 1e-10;
     % Solve Kepler's equation for Ef
     E = M;  % Initial guess for E_f
