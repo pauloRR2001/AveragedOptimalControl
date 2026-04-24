@@ -19,7 +19,7 @@ params.T_max = 0.1*(TU^2/(100*DU*1000)) / 1000;
 params.q = 200;
 params.epsilon_S = 1e-1;
 params.T_min = 0;
-params.use_J2 = false;
+params.use_J2 = true;
 
 i0 = deg2rad(28.5);
 Omega0 = 0;
@@ -40,7 +40,7 @@ h0 = tan(inc0/2);
 k0 = 0;
 L0 = 0;
 t0 = 0;
-alpha0 = 20*86400/TU;
+alpha0 = 20*86400/TU / 20;
 m0 = 1;
 
 x0 = [p0; f0; g0; h0; k0; L0; t0; alpha0; m0];
