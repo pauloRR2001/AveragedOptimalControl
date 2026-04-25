@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% test5_symbolic_gto_geo.m
+% test_paper_gto_geo_shooting_symbolic_lsqnonlin.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear; close all;
@@ -15,12 +15,11 @@ params.c = params.g0*params.Isp;
 params.T_min = 0;
 params.T_max = 0.1*(TU^2/(DU*1000));
 
-params.q = 20;
+params.q = 40;
 params.eps_S = 1e-1;
 
-params.use_J2 = true;
 params.RE = 6378.1/DU;
-params.J2 = 1.0826e-3;
+params.J2 = 1.08263e-3;
 
 p0 = 1.822602598777046;
 f0 = 0.725;
@@ -34,42 +33,55 @@ m0 = 100;
 
 x0 = [p0; f0; g0; h0; k0; L0; t0; alpha0; m0];
 
-lambda0_paper_avg = [
-   -2.321793758669676
-   -9.199538357321630
-    1.404633937240160
-    9.188477824364700
-   -1.546306515894560
-    0
-    0.000000000006312
-    0
-    0.074835258123558
-];
+% paper
+% lambda0_guess = [
+%    -2.321793758669676
+%    -9.199953835732163
+%     1.404963393724016
+%     9.188784778243647
+%    -1.546530651589456
+%     0
+%     0.000000000006312
+%     0
+%     0.074835258123558
+% ];
 
+% 2 hours run
+% lambda0_guess = [
+%   -1.828786152945906
+%  -10.152640985483089
+%    4.811173218653281
+%   11.724568324458735
+%   -0.898732369329855
+%   -0.001893508407479
+%    0.000006890251381
+%                    0
+%    0.038490613833436
+% ];
+
+% fast run with seps=1e-1, q=40 from fminunc
 lambda0_guess = [
-   0.177539811977954
-  -0.008044219729262
-   4.592634444038394
-  10.046597288646886
-  -3.042766429481612
-  -0.002942465450990
-   0.085647894836700
-  -0.085392440562130
-   0.000746712757548
+  -1.967847803145031
+ -11.056764487340876
+   4.145818903384442
+  12.237626634771029
+   0.899834150512536
+   0.000017226165227
+   0.000008800790354
+                   0
+   0.039524341544112
 ];
-
-lambda0_guess = lambda0_paper_avg;
 
 target.p = p0;
 target.f = f0;
-target.g = g0;
+target.g = 0;
 target.h = 0;
 target.k = 0;
 
-odeopts = odeset('RelTol',1e-8,'AbsTol',1e-10);
+odeopts = odeset('RelTol',1e-12,'AbsTol',1e-12);
 
 fprintf('\n========================================\n');
-fprintf('SYMBOLIC GTO-TO-GEO AVG TEST\n');
+fprintf('PAPER GTO-TO-GTO-FLAT SHOOTING TEST (LSQNONLIN)\n');
 fprintf('========================================\n');
 fprintf('p0 = %.15f\n', x0(1));
 fprintf('f0 = %.15f\n', x0(2));
@@ -77,18 +89,73 @@ fprintf('g0 = %.15f\n', x0(3));
 fprintf('h0 = %.15f\n', x0(4));
 fprintf('k0 = %.15f\n', x0(5));
 fprintf('alpha0 = %.15f TU\n', x0(8));
-fprintf('time of flight = %.15f days\n', x0(8)*TU/86400);
+fprintf('time of flight days = %.15f\n', x0(8)*TU/86400);
 fprintf('m0 = %.15f kg\n', x0(9));
 fprintf('params.c = %.15e\n', params.c);
 fprintf('params.T_max = %.15e\n', params.T_max);
 fprintf('params.T_max/m0 = %.15e\n', params.T_max/m0);
+fprintf('params.J2 = %.15e\n', params.J2);
+fprintf('params.q = %d\n', params.q);
+fprintf('params.eps_S = %.15e\n', params.eps_S);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% fixed propagation with seed costate
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[tau_seed,Y_seed] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...
+                          [0 1], [x0; lambda0_guess], odeopts);
+
+x_seed = Y_seed(:,1:9);
+lambda_seed = Y_seed(:,10:18);
+
+H_seed = zeros(length(tau_seed),1);
+sigma_seed = zeros(length(tau_seed),1);
+T_seed = zeros(length(tau_seed),1);
+
+for i = 1:length(tau_seed)
+    H_seed(i) = calculate_averaged_hamiltonian_symbolic(x_seed(i,:).',lambda_seed(i,:).',params);
+    [sigma_seed(i),T_seed(i)] = thrust_history_simple(x_seed(i,:).',lambda_seed(i,:).',params);
+end
+
+res_seed = shooting_residual_symbolic(lambda0_guess,x0,target,params,odeopts);
 
 fprintf('\n========================================\n');
-fprintf('TEST 1: FIXED PROPAGATION WITH PROVIDED COSTATE GUESS\n');
+fprintf('FIXED PROPAGATION WITH SEED COSTATE\n');
 fprintf('========================================\n');
+fprintf('resnorm(seed) = %.15e\n', res_seed.'*res_seed);
+fprintf('terminal residual norm = %.15e\n', norm(res_seed));
+fprintf('Final p error = %.15e\n', x_seed(end,1)-target.p);
+fprintf('Final f error = %.15e\n', x_seed(end,2)-target.f);
+fprintf('Final g error = %.15e\n', x_seed(end,3)-target.g);
+fprintf('Final h error = %.15e\n', x_seed(end,4)-target.h);
+fprintf('Final k error = %.15e\n', x_seed(end,5)-target.k);
+fprintf('lambda_L(tf) = %.15e\n', lambda_seed(end,6));
+fprintf('lambda_m(tf) = %.15e\n', lambda_seed(end,9));
+fprintf('Final mass = %.15f\n', x_seed(end,9));
+fprintf('max |H-H0| = %.15e\n', max(abs(H_seed-H_seed(1))));
+fprintf('min sigma = %.15f\n', min(sigma_seed));
+fprintf('max sigma = %.15f\n', max(sigma_seed));
+fprintf('min T = %.15e\n', min(T_seed));
+fprintf('max T = %.15e\n', max(T_seed));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% lsqnonlin shooting solve
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+lsqopts = optimoptions(@lsqnonlin, ...
+    'Display','iter', ...
+    'Algorithm','levenberg-marquardt', ...
+    'MaxIterations',200, ...
+    'MaxFunctionEvaluations',5000, ...
+    'StepTolerance',1e-12, ...
+    'FunctionTolerance',1e-12, ...
+    'OptimalityTolerance',1e-10);
+
+lambda0_opt = lsqnonlin(@(lambda0) shooting_residual_symbolic(lambda0,x0,target,params,odeopts), ...
+                        lambda0_guess, [], [], lsqopts);
 
 [tau,Y] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...
-                [0 1],[x0; lambda0_guess],odeopts);
+                [0 1], [x0; lambda0_opt], odeopts);
 
 x = Y(:,1:9);
 lambda = Y(:,10:18);
@@ -102,9 +169,14 @@ for i = 1:length(tau)
     [sigma(i),T(i)] = thrust_history_simple(x(i,:).',lambda(i,:).',params);
 end
 
-res_fixed = terminal_residual(x(end,:).',lambda(end,:).',target);
+res_opt = terminal_residual(x(end,:).',lambda(end,:).',target);
 
-fprintf('terminal residual norm = %.15e\n', norm(res_fixed));
+fprintf('\n========================================\n');
+fprintf('LSQNONLIN CORRECTED SOLUTION\n');
+fprintf('========================================\n');
+fprintf('Optimized initial costates:\n');
+disp(lambda0_opt);
+fprintf('terminal residual norm = %.15e\n', norm(res_opt));
 fprintf('Final p error = %.15e\n', x(end,1)-target.p);
 fprintf('Final f error = %.15e\n', x(end,2)-target.f);
 fprintf('Final g error = %.15e\n', x(end,3)-target.g);
@@ -116,114 +188,77 @@ fprintf('Final mass = %.15f\n', x(end,9));
 fprintf('max |H-H0| = %.15e\n', max(abs(H-H(1))));
 fprintf('min sigma = %.15f\n', min(sigma));
 fprintf('max sigma = %.15f\n', max(sigma));
+fprintf('min T = %.15e\n', min(T));
+fprintf('max T = %.15e\n', max(T));
 
-fprintf('\n========================================\n');
-fprintf('TEST 2: LSQNONLIN CORRECTED COSTATES\n');
-fprintf('========================================\n');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mean Cartesian trajectory
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-lsqopts = optimoptions(@lsqnonlin, ...
-    'Display','iter', ...
-    'FunctionTolerance',1e-10, ...
-    'StepTolerance',1e-10, ...
-    'OptimalityTolerance',1e-10, ...
-    'MaxIterations',100, ...
-    'MaxFunctionEvaluations',2500);
+r_cart = zeros(length(tau),3);
 
-lambda0_opt = lsqnonlin(@(lambda0) shooting_residual_symbolic(lambda0,x0,target,params,odeopts), ...
-                        lambda0_guess, [], [], lsqopts);
-
-[tau_opt,Y_opt] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...
-                        [0 1],[x0; lambda0_opt],odeopts);
-
-x_opt = Y_opt(:,1:9);
-lambda_opt = Y_opt(:,10:18);
-
-H_opt = zeros(length(tau_opt),1);
-sigma_opt = zeros(length(tau_opt),1);
-T_opt = zeros(length(tau_opt),1);
-
-for i = 1:length(tau_opt)
-    H_opt(i) = calculate_averaged_hamiltonian_symbolic(x_opt(i,:).',lambda_opt(i,:).',params);
-    [sigma_opt(i),T_opt(i)] = thrust_history_simple(x_opt(i,:).',lambda_opt(i,:).',params);
-end
-
-res_opt = terminal_residual(x_opt(end,:).',lambda_opt(end,:).',target);
-
-fprintf('Optimized costates:\n');
-disp(lambda0_opt);
-fprintf('terminal residual norm = %.15e\n', norm(res_opt));
-fprintf('Final p error = %.15e\n', x_opt(end,1)-target.p);
-fprintf('Final f error = %.15e\n', x_opt(end,2)-target.f);
-fprintf('Final g error = %.15e\n', x_opt(end,3)-target.g);
-fprintf('Final h error = %.15e\n', x_opt(end,4)-target.h);
-fprintf('Final k error = %.15e\n', x_opt(end,5)-target.k);
-fprintf('lambda_L(tf) = %.15e\n', lambda_opt(end,6));
-fprintf('lambda_m(tf) = %.15e\n', lambda_opt(end,9));
-fprintf('Final mass = %.15f\n', x_opt(end,9));
-fprintf('max |H-H0| = %.15e\n', max(abs(H_opt-H_opt(1))));
-fprintf('min sigma = %.15f\n', min(sigma_opt));
-fprintf('max sigma = %.15f\n', max(sigma_opt));
-
-r_cart = zeros(length(tau_opt),3);
-
-for i = 1:length(tau_opt)
-    s_mee = x_opt(i,1:6).';
+for i = 1:length(tau)
+    s_mee = x(i,1:6).';
     s_kep = MEE2KEP(s_mee);
     s_cart = KEP2CART(s_kep,params.mu);
     r_cart(i,:) = s_cart(1:3).';
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% plots
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 lw = 1.5;
 
 figure;
-plot(tau_opt,x_opt(:,1),'LineWidth',lw); hold on;
-plot(tau_opt,x_opt(:,2),'LineWidth',lw);
-plot(tau_opt,x_opt(:,3),'LineWidth',lw);
-plot(tau_opt,x_opt(:,4),'LineWidth',lw);
-plot(tau_opt,x_opt(:,5),'LineWidth',lw);
+plot(tau,x(:,1),'LineWidth',lw); hold on;
+plot(tau,x(:,2),'LineWidth',lw);
+plot(tau,x(:,3),'LineWidth',lw);
+plot(tau,x(:,4),'LineWidth',lw);
+plot(tau,x(:,5),'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
 ylabel('MEE states');
-title('Symbolic GTO-to-GEO Flat MEE State History');
+title('Corrected GTO-to-GTO-Flat MEE State History');
 legend('p','f','g','h','k','Location','best');
 
 figure;
-plot(tau_opt,lambda_opt(:,1),'LineWidth',lw); hold on;
-plot(tau_opt,lambda_opt(:,2),'LineWidth',lw);
-plot(tau_opt,lambda_opt(:,3),'LineWidth',lw);
-plot(tau_opt,lambda_opt(:,4),'LineWidth',lw);
-plot(tau_opt,lambda_opt(:,5),'LineWidth',lw);
-plot(tau_opt,lambda_opt(:,6),'LineWidth',lw);
-plot(tau_opt,lambda_opt(:,9),'LineWidth',lw);
+plot(tau,lambda(:,1),'LineWidth',lw); hold on;
+plot(tau,lambda(:,2),'LineWidth',lw);
+plot(tau,lambda(:,3),'LineWidth',lw);
+plot(tau,lambda(:,4),'LineWidth',lw);
+plot(tau,lambda(:,5),'LineWidth',lw);
+plot(tau,lambda(:,6),'LineWidth',lw);
+plot(tau,lambda(:,9),'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
 ylabel('Costates');
-title('Symbolic GTO-to-GEO Flat Costate History');
+title('Corrected GTO-to-GTO-Flat Costate History');
 legend('\lambda_p','\lambda_f','\lambda_g','\lambda_h','\lambda_k','\lambda_L','\lambda_m','Location','best');
 
 figure;
-plot(tau_opt,H_opt-H_opt(1),'LineWidth',lw);
+plot(tau,H-H(1),'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
 ylabel('\tilde H-\tilde H(0)');
 title('Averaged Hamiltonian Error');
 
 figure;
-plot(tau_opt,sigma_opt,'LineWidth',lw);
+plot(tau,sigma,'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
 ylabel('\sigma');
 title('Thrust Modulation');
 
 figure;
-plot(tau_opt,T_opt,'LineWidth',lw);
+plot(tau,T,'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
 ylabel('T');
 title('Thrust Magnitude');
 
 figure;
-plot(tau_opt,x_opt(:,9),'LineWidth',lw);
+plot(tau,x(:,9),'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
 ylabel('m');
@@ -238,16 +273,49 @@ ylabel('y');
 zlabel('z');
 title('Mean Cartesian Trajectory from Averaged MEE');
 
-function res = shooting_residual_symbolic(lambda0,x0,target,params,odeopts)
-    [~,Y] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...
-                  [0 1],[x0; lambda0],odeopts);
-    yf = Y(end,:).';
-    xf = yf(1:9);
-    lambdaf = yf(10:18);
-    res = terminal_residual(xf,lambdaf,target);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% local functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function r = shooting_residual_symbolic(lambda0,x0,target,params,odeopts)
+
+    r_bad = 1e10*ones(7,1);
+
+    try
+        [~,Y] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...
+                      [0 1], [x0; lambda0], odeopts);
+
+        if isempty(Y) || any(~isfinite(Y(:)))
+            r = r_bad;
+            return;
+        end
+
+        yf = Y(end,:).';
+        xf = yf(1:9);
+        lambdaf = yf(10:18);
+
+        r = [
+            xf(1) - target.p
+            xf(2) - target.f
+            xf(3) - target.g
+            xf(4) - target.h
+            xf(5) - target.k
+            lambdaf(6)
+            lambdaf(9)
+        ];
+
+        if any(~isfinite(r))
+            r = r_bad;
+        end
+
+    catch
+        r = r_bad;
+    end
+
 end
 
 function res = terminal_residual(xf,lambdaf,target)
+
     res = [
         xf(1) - target.p
         xf(2) - target.f
@@ -257,15 +325,22 @@ function res = terminal_residual(xf,lambdaf,target)
         lambdaf(6)
         lambdaf(9)
     ];
+
 end
 
 function [sigma,T] = thrust_history_simple(x,lambda,params)
+
     B = get_MEE_B_matrix(x,params.mu);
+
     lam_MEE = lambda(1:6);
     lam_m = lambda(9);
+
     Btl = B.'*lam_MEE;
     Btl_norm = norm(Btl);
+
     S = -(params.c/x(9))*Btl_norm - lam_m + 1;
+
     sigma = 0.5*(1 - S/sqrt(S^2 + params.eps_S^2));
     T = params.T_min + (params.T_max - params.T_min)*sigma;
+
 end
