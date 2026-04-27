@@ -1,4 +1,4 @@
-function out = plot_reconstructed_cartesian_trajectory(tau_avg, x_avg, lambda_avg, params, npts_per_orbit)
+function out = prop_reconstructed_cartesian_trajectory(tau_avg, x_avg, lambda_avg, params, npts_per_orbit)
 % Reconstructs a realistic-looking controlled trajectory by propagating the
 % UNAVERAGED MEE dynamics densely, while using the converged AVERAGED
 % costates as a feedback law for thrust direction and throttle.

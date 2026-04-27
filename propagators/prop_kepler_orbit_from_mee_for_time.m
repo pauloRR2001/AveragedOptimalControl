@@ -1,4 +1,4 @@
-function out = plot_kepler_orbit_from_mee_for_time(s_mee0, t_f, mu, npts)
+function out = prop_kepler_orbit_from_mee_for_time(s_mee0, t_f, mu, npts)
 % Plots the two-body orbit corresponding to an initial MEE state by:
 %   1) converting MEE -> Keplerian once at t = 0
 %   2) advancing mean anomaly as M(t) = M0 + n t
