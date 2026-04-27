@@ -192,19 +192,6 @@ fprintf('min T = %.15e\n', min(T));
 fprintf('max T = %.15e\n', max(T));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% mean Cartesian trajectory
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-r_cart = zeros(length(tau),3);
-
-for i = 1:length(tau)
-    s_mee = x(i,1:6).';
-    s_kep = MEE2KEP(s_mee);
-    s_cart = KEP2CART(s_kep,params.mu);
-    r_cart(i,:) = s_cart(1:3).';
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % plots
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -264,14 +251,137 @@ xlabel('\tau');
 ylabel('m');
 title('Mass History');
 
+%% reconstruct
+
+recon = prop_reconstructed_cartesian_trajectory(tau, x, lambda, params, 100);
+
+out = prop_kepler_orbit_from_mee_for_time([p0, f0, 0, 0, 0, 0], alpha0, params.mu, 100000);
+
+%% final plot
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PLOTS USING recon AND out
+%   recon.r_cart   = reconstructed transfer Cartesian history [N x 3]
+%   recon.tau      = reconstructed transfer tau grid
+%   recon.x        = reconstructed transfer state history [N x 9]
+%
+%   out.cart       = target orbit Cartesian history [M x 6] or [M x 3]
+%   out.t          = target orbit time grid
+%   out.kep        = target orbit Keplerian history [M x 6]
+%
+%   target         = struct with fields p,f,g,h,k
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Figure 1: full trajectory and target orbit
 figure;
-plot3(r_cart(:,1),r_cart(:,2),r_cart(:,3),'LineWidth',lw);
-grid on; box on;
-axis equal;
+plot3(recon.r_cart(:,1), recon.r_cart(:,2), recon.r_cart(:,3), 'b', 'LineWidth', 1.5); hold on;
+plot3(out.cart(:,1),   out.cart(:,2),   out.cart(:,3),   'r', 'LineWidth', 1.5);
+earthy(1, 'Earth', 1,[0,0,0])
+grid on; box on; axis equal;
 xlabel('x');
 ylabel('y');
 zlabel('z');
-title('Mean Cartesian Trajectory from Averaged MEE');
+title('Transfer Trajectory and Target Orbit');
+legend('Controlled transfer','Target orbit','Location','best');
+
+% Figure 2: relative trajectory in LVLH-like frame built from target orbit
+% Interpolate target Cartesian history onto reconstructed time grid
+t_recon = recon.tau(:);
+t_out   = out.t(:);
+
+r_tgt_i = zeros(numel(t_recon),3);
+v_tgt_i = zeros(numel(t_recon),3);
+
+r_tgt_i(:,1) = interp1(t_out, out.cart(:,1), t_recon, 'pchip', 'extrap');
+r_tgt_i(:,2) = interp1(t_out, out.cart(:,2), t_recon, 'pchip', 'extrap');
+r_tgt_i(:,3) = interp1(t_out, out.cart(:,3), t_recon, 'pchip', 'extrap');
+
+v_tgt_i(:,1) = interp1(t_out, out.cart(:,4), t_recon, 'pchip', 'extrap');
+v_tgt_i(:,2) = interp1(t_out, out.cart(:,5), t_recon, 'pchip', 'extrap');
+v_tgt_i(:,3) = interp1(t_out, out.cart(:,6), t_recon, 'pchip', 'extrap');
+
+rho_lvlh = zeros(numel(t_recon),3);
+
+for k = 1:numel(t_recon)
+
+    rT = r_tgt_i(k,:).';
+    vT = v_tgt_i(k,:).';
+    rC = recon.r_cart(k,:).';
+
+    er = rT / norm(rT);
+    eh = cross(rT, vT);  eh = eh / norm(eh);
+    et = cross(eh, er);
+
+    C_I_to_RTN = [er.'; et.'; eh.'];
+
+    rho_I = rC - rT;
+    rho_lvlh(k,:) = (C_I_to_RTN * rho_I).';
+
+end
+
+figure;
+plot3(rho_lvlh(:,1), rho_lvlh(:,2), rho_lvlh(:,3), 'k', 'LineWidth', 1.5);
+grid on; box on; axis equal;
+xlabel('\Delta R');
+ylabel('\Delta T');
+zlabel('\Delta N');
+title('Relative Trajectory with Respect to Target Orbit (RTN)');
+% optionally mark start/end
+hold on;
+plot3(rho_lvlh(1,1),   rho_lvlh(1,2),   rho_lvlh(1,3),   'go', 'MarkerFaceColor','g');
+plot3(rho_lvlh(end,1), rho_lvlh(end,2), rho_lvlh(end,3), 'mo', 'MarkerFaceColor','m');
+legend('Relative path','Start','End','Location','best');
+
+% Figure 3: state elements vs full transfer time with target final values
+
+t_days = recon.tau * alpha0 * TU / 86400;
+
+figure;
+
+state_labels = {'p','f','g','h','k'};
+target_vals = [target.p, target.f, target.g, target.h, target.k];
+
+for j = 1:5
+    subplot(3,2,j);
+    plot(t_days, recon.x(:,j), 'b', 'LineWidth', 1.5); hold on;
+    yline(target_vals(j), 'r--', 'LineWidth', 1.5);
+    grid on; box on;
+    xlabel('time [days]');
+    ylabel(state_labels{j});
+    title([state_labels{j} ' vs time']);
+    legend(state_labels{j}, 'target', 'Location', 'best');
+end
+
+subplot(3,2,6);
+plot(t_days, recon.x(:,9), 'b', 'LineWidth', 1.5);
+grid on; box on;
+xlabel('time [days]');
+ylabel('m');
+title('Mass vs time');
+legend('m', 'Location', 'best');
+
+%% modulation
+lw = 1.5;
+
+figure;
+plot(recon.tau, recon.sigma, 'LineWidth', lw);
+grid on; box on;
+xlabel('\tau');
+ylabel('\sigma');
+title('Reconstructed Throttle History');
+
+figure;
+plot(recon.tau, recon.T, 'LineWidth', lw);
+grid on; box on;
+xlabel('\tau');
+ylabel('T');
+title('Reconstructed Thrust Magnitude');
+
+figure;
+plot(recon.tau, recon.x(:,9), 'LineWidth', lw);
+grid on; box on;
+xlabel('\tau');
+ylabel('m');
+title('Reconstructed Mass History');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % local functions
