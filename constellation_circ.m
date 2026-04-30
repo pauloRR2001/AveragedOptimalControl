@@ -332,17 +332,40 @@ fprintf('Total circularization delta-v = %.12f km/s\n', dv_circ_total_km_s);
 fprintf('============================================================\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plots
+%% Plots
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 lw = 1.5;
 
+% figure;
+% bar(dv_circ_m_s_all);
+% grid on; box on;
+% xlabel('Satellite index');
+% ylabel('\Delta v [m/s]');
+% title('Circularization \Delta v per Satellite');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Circularization delta-v vs RAAN
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+raan_circ_deg_all = zeros(1,N_s);
+
+for sat = 1:N_s
+    if isfield(target_circ_all,'raan_deg')
+        raan_circ_deg_all(sat) = target_circ_all(sat).raan_deg;
+    elseif isfield(target_all,'raan_deg')
+        raan_circ_deg_all(sat) = target_all(sat).raan_deg;
+    else
+        raan_circ_deg_all(sat) = sat;
+    end
+end
+
 figure;
-bar(dv_circ_m_s_all);
+bar(raan_circ_deg_all,dv_circ_m_s_all);
 grid on; box on;
-xlabel('Satellite index');
+xlabel('RAAN [deg]');
 ylabel('\Delta v [m/s]');
-title('Circularization \Delta v per Satellite');
+title('Circularization \Delta v vs RAAN');
+xticks(raan_circ_deg_all);
 
 figure;
 semilogy(resnorm_circ_all,'o-','LineWidth',lw);

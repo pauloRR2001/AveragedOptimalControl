@@ -201,9 +201,12 @@ for sat = 1:N_s
     % Solve shooting problem for this satellite
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    lambda0_opt = lsqnonlin( ...
-        @(lambda0) shooting_residual_symbolic(lambda0,x0,target,params,odeopts), ...
-        lambda0_seed, [], [], lsqopts);
+    % lambda0_opt = lsqnonlin( ...
+    %     @(lambda0) shooting_residual_symbolic(lambda0,x0,target,params,odeopts), ...
+    %     lambda0_seed, [], [], lsqopts);
+    [lambda0_opt,resnorm_lsq,residual_lsq,exitflag_lsq,output_lsq] = lsqnonlin( ...
+    @(lambda0) shooting_residual_symbolic(lambda0,x0,target,params,odeopts), ...
+    lambda0_seed, [], [], lsqopts);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Re-propagate corrected solution
@@ -236,6 +239,11 @@ for sat = 1:N_s
     lambda0_all(:,sat) = lambda0_opt;
     residual_all(:,sat) = res_opt;
     resnorm_all(sat) = norm(res_opt);
+
+    iterations_all(sat) = output_lsq.iterations;
+    funcCount_all(sat) = output_lsq.funcCount;
+    exitflag_all(sat) = exitflag_lsq;
+    resnorm_lsq_all(sat) = resnorm_lsq;
 
     final_mass_all(sat) = x(end,9);
     H_drift_all(sat) = max(abs(H-H(1)));
@@ -286,7 +294,7 @@ for sat = 1:N_s
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Summary table
+%% Summary table
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fprintf('\n============================================================\n');
@@ -306,7 +314,7 @@ for sat = 1:N_s
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Plots
+%% Plots
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 lw = 1.5;
@@ -346,6 +354,21 @@ xlabel('h');
 ylabel('k');
 title('Target Plane Elements in h-k Space');
 legend('Target satellites','i = 15 deg circle','Initial GTO plane','Location','best');
+
+figure;
+plot(raan_deg_list,iterations_all,'o-','LineWidth',lw);
+grid on; box on;
+xlabel('Target RAAN [deg]');
+ylabel('lsqnonlin iterations');
+title('Nonlinear Solver Iterations vs Target RAAN');
+
+figure;
+bar(raan_deg_list,dv_m_s_all);
+grid on; box on;
+xlabel('Target RAAN [deg]');
+ylabel('\Delta v [m/s]');
+title('\Delta v vs Target RAAN');
+xticks(raan_deg_list);
 
 % p,f,g,h,k histories for all satellites
 figure;

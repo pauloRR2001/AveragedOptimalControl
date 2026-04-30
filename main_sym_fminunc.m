@@ -21,12 +21,22 @@ params.eps_S = 1e-1;
 params.RE = 6378.1/DU;
 params.J2 = 1.08263e-3;
 
+% GTO inc
 p0 = 1.822602598777046;
 f0 = 0.725;
 g0 = 0;
 h0 = 0.253967646474944;
 k0 = 0;
 L0 = 0;
+
+% LEO to meo
+% p0 = 1.047052367513327;
+% f0 = 0;
+% g0 = 0;
+% h0 = 0.253967646474944;
+% k0 = 0;
+% L0 = 0;
+
 t0 = 0;
 alpha0 = 3212.749578552824;
 m0 = 100;
@@ -72,11 +82,19 @@ lambda0_guess =[
    0.039524341544112
 ];
 
+% GTO planar
 target.p = p0;
 target.f = f0;
 target.g = 0;
 target.h = 0;
 target.k = 0;
+
+% leo to meo
+% target.p = 4.167152712449044;
+% target.f = 0;
+% target.g = 0;
+% target.h = 0.520567050551746;
+% target.k = 0;
 
 odeopts = odeset('RelTol',1e-12,'AbsTol',1e-12);
 
@@ -99,7 +117,7 @@ fprintf('params.q = %d\n', params.q);
 fprintf('params.eps_S = %.15e\n', params.eps_S);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fixed propagation with appendix costate
+%% fixed propagation with appendix costate
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [tau0,Y0] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...

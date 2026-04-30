@@ -99,7 +99,7 @@ fprintf('params.q = %d\n', params.q);
 fprintf('params.eps_S = %.15e\n', params.eps_S);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fixed propagation with seed costate
+%% fixed propagation with seed costate
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [tau_seed,Y_seed] = ode45(@(tau,y) averaged_dynamics_symbolic(y,params), ...
@@ -171,6 +171,8 @@ end
 
 res_opt = terminal_residual(x(end,:).',lambda(end,:).',target);
 
+%% Results
+
 fprintf('\n========================================\n');
 fprintf('LSQNONLIN CORRECTED SOLUTION\n');
 fprintf('========================================\n');
@@ -192,7 +194,7 @@ fprintf('min T = %.15e\n', min(T));
 fprintf('max T = %.15e\n', max(T));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% plots
+%% plots
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 lw = 1.5;
@@ -204,10 +206,10 @@ plot(tau,x(:,3),'LineWidth',lw);
 plot(tau,x(:,4),'LineWidth',lw);
 plot(tau,x(:,5),'LineWidth',lw);
 grid on; box on;
-xlabel('\tau');
-ylabel('MEE states');
-title('Corrected GTO-to-GTO-Flat MEE State History');
-legend('p','f','g','h','k','Location','best');
+xlabel('$\tau$','Interpreter','latex');
+ylabel('MEE states','Interpreter','latex');
+title('Corrected GTO-to-GTO-Flat MEE State History','Interpreter','latex');
+legend('p','f','g','h','k','Location','best','Interpreter','latex');
 
 figure;
 plot(tau,lambda(:,1),'LineWidth',lw); hold on;
@@ -218,44 +220,46 @@ plot(tau,lambda(:,5),'LineWidth',lw);
 plot(tau,lambda(:,6),'LineWidth',lw);
 plot(tau,lambda(:,9),'LineWidth',lw);
 grid on; box on;
-xlabel('\tau');
-ylabel('Costates');
-title('Corrected GTO-to-GTO-Flat Costate History');
-legend('\lambda_p','\lambda_f','\lambda_g','\lambda_h','\lambda_k','\lambda_L','\lambda_m','Location','best');
+xlabel('$\tau$','Interpreter','latex');
+ylabel('Costates','Interpreter','latex');
+title('Corrected GTO-to-GTO-Flat Costate History','Interpreter','latex');
+legend('$\lambda_p$','$\lambda_f$','$\lambda_g$','$\lambda_h$','$\lambda_k$','$\lambda_L$','$\lambda_m$','Location','best'...
+    ,'Interpreter','latex');
 
 figure;
 plot(tau,H-H(1),'LineWidth',lw);
 grid on; box on;
 xlabel('\tau');
-ylabel('\tilde H-\tilde H(0)');
-title('Averaged Hamiltonian Error');
+ylabel('$\tilde H-\tilde H(0)$','Interpreter','latex');
+title('Averaged Hamiltonian Error','Interpreter','latex');
 
 figure;
 plot(tau,sigma,'LineWidth',lw);
 grid on; box on;
-xlabel('\tau');
-ylabel('\sigma');
-title('Thrust Modulation');
+xlabel('$\tau$','Interpreter','latex');
+ylabel('$\sigma$','Interpreter','latex');
+title('Thrust Modulation','Interpreter','latex');
 
 figure;
 plot(tau,T,'LineWidth',lw);
 grid on; box on;
-xlabel('\tau');
-ylabel('T');
-title('Thrust Magnitude');
+xlabel('$\tau$','Interpreter','latex');
+ylabel('T','Interpreter','latex');
+title('Thrust Magnitude','Interpreter','latex');
 
 figure;
 plot(tau,x(:,9),'LineWidth',lw);
 grid on; box on;
-xlabel('\tau');
-ylabel('m');
-title('Mass History');
+xlabel('$\tau$','Interpreter','latex');
+ylabel('m','Interpreter','latex');
+title('Mass History','Interpreter','latex');
 
 %% reconstruct
 
 recon = prop_reconstructed_cartesian_trajectory(tau, x, lambda, params, 100);
 
-out = prop_kepler_orbit_from_mee_for_time([p0, f0, 0, 0, 0, 0], alpha0, params.mu, 100000);
+out_f = prop_kepler_orbit_from_mee_for_time([p0, f0, 0, 0, 0, 0], alpha0, params.mu, 100000);
+out_0 = prop_kepler_orbit_from_mee_for_time([p0, f0, g0, h0, k0, L0], alpha0, params.mu, 100000);
 
 %% final plot
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -274,30 +278,31 @@ out = prop_kepler_orbit_from_mee_for_time([p0, f0, 0, 0, 0, 0], alpha0, params.m
 % Figure 1: full trajectory and target orbit
 figure;
 plot3(recon.r_cart(:,1), recon.r_cart(:,2), recon.r_cart(:,3), 'b', 'LineWidth', 1.5); hold on;
-plot3(out.cart(:,1),   out.cart(:,2),   out.cart(:,3),   'r', 'LineWidth', 1.5);
+plot3(out_f.cart(:,1),   out_f.cart(:,2),   out_f.cart(:,3),   'r', 'LineWidth', 1.5);
+plot3(out_0.cart(:,1),   out_0.cart(:,2),   out_0.cart(:,3),   'k', 'LineWidth', 1.5);
 earthy(1, 'Earth', 1,[0,0,0])
 grid on; box on; axis equal;
-xlabel('x');
-ylabel('y');
-zlabel('z');
-title('Transfer Trajectory and Target Orbit');
-legend('Controlled transfer','Target orbit','Location','best');
+xlabel('x','Interpreter','latex');
+ylabel('y','Interpreter','latex');
+zlabel('z','Interpreter','latex');
+title('Transfer Trajectory and Target Orbit','Interpreter','latex');
+legend('Controlled transfer','Target orbit','Initial Orbit','Location','best','Interpreter','latex');
 
 % Figure 2: relative trajectory in LVLH-like frame built from target orbit
 % Interpolate target Cartesian history onto reconstructed time grid
 t_recon = recon.tau(:);
-t_out   = out.t(:);
+t_out   = out_f.t(:);
 
 r_tgt_i = zeros(numel(t_recon),3);
 v_tgt_i = zeros(numel(t_recon),3);
 
-r_tgt_i(:,1) = interp1(t_out, out.cart(:,1), t_recon, 'pchip', 'extrap');
-r_tgt_i(:,2) = interp1(t_out, out.cart(:,2), t_recon, 'pchip', 'extrap');
-r_tgt_i(:,3) = interp1(t_out, out.cart(:,3), t_recon, 'pchip', 'extrap');
+r_tgt_i(:,1) = interp1(t_out, out_f.cart(:,1), t_recon, 'pchip', 'extrap');
+r_tgt_i(:,2) = interp1(t_out, out_f.cart(:,2), t_recon, 'pchip', 'extrap');
+r_tgt_i(:,3) = interp1(t_out, out_f.cart(:,3), t_recon, 'pchip', 'extrap');
 
-v_tgt_i(:,1) = interp1(t_out, out.cart(:,4), t_recon, 'pchip', 'extrap');
-v_tgt_i(:,2) = interp1(t_out, out.cart(:,5), t_recon, 'pchip', 'extrap');
-v_tgt_i(:,3) = interp1(t_out, out.cart(:,6), t_recon, 'pchip', 'extrap');
+v_tgt_i(:,1) = interp1(t_out, out_f.cart(:,4), t_recon, 'pchip', 'extrap');
+v_tgt_i(:,2) = interp1(t_out, out_f.cart(:,5), t_recon, 'pchip', 'extrap');
+v_tgt_i(:,3) = interp1(t_out, out_f.cart(:,6), t_recon, 'pchip', 'extrap');
 
 rho_lvlh = zeros(numel(t_recon),3);
 
@@ -321,15 +326,15 @@ end
 figure;
 plot3(rho_lvlh(:,1), rho_lvlh(:,2), rho_lvlh(:,3), 'k', 'LineWidth', 1.5);
 grid on; box on; axis equal;
-xlabel('\Delta R');
-ylabel('\Delta T');
-zlabel('\Delta N');
-title('Relative Trajectory with Respect to Target Orbit (RTN)');
+xlabel('$\Delta R$','Interpreter','latex');
+ylabel('$\Delta T$','Interpreter','latex');
+zlabel('$\Delta N$','Interpreter','latex');
+title('Relative Trajectory with Respect to Target Orbit (RTN)','Interpreter','latex');
 % optionally mark start/end
 hold on;
 plot3(rho_lvlh(1,1),   rho_lvlh(1,2),   rho_lvlh(1,3),   'go', 'MarkerFaceColor','g');
 plot3(rho_lvlh(end,1), rho_lvlh(end,2), rho_lvlh(end,3), 'mo', 'MarkerFaceColor','m');
-legend('Relative path','Start','End','Location','best');
+legend('Relative path','Start','End','Location','best','Interpreter','latex');
 
 % Figure 3: state elements vs full transfer time with target final values
 
@@ -345,10 +350,10 @@ for j = 1:5
     plot(t_days, recon.x(:,j), 'b', 'LineWidth', 1.5); hold on;
     yline(target_vals(j), 'r--', 'LineWidth', 1.5);
     grid on; box on;
-    xlabel('time [days]');
-    ylabel(state_labels{j});
-    title([state_labels{j} ' vs time']);
-    legend(state_labels{j}, 'target', 'Location', 'best');
+    xlabel('time [days]','Interpreter','latex');
+    ylabel(state_labels{j},'Interpreter','latex');
+    title([state_labels{j} ' vs time'],'Interpreter','latex');
+    legend(state_labels{j}, 'target', 'Location', 'best','Interpreter','latex');
 end
 
 subplot(3,2,6);
@@ -362,26 +367,26 @@ legend('m', 'Location', 'best');
 %% modulation
 lw = 1.5;
 
-figure;
-plot(recon.tau, recon.sigma, 'LineWidth', lw);
-grid on; box on;
-xlabel('\tau');
-ylabel('\sigma');
-title('Reconstructed Throttle History');
+% figure;
+% plot(recon.tau, recon.sigma, 'LineWidth', lw);
+% grid on; box on;
+% xlabel('\tau');
+% ylabel('\sigma');
+% title('Reconstructed Throttle History');
+% 
+% figure;
+% plot(recon.tau, recon.T, 'LineWidth', lw);
+% grid on; box on;
+% xlabel('\tau');
+% ylabel('T');
+% title('Reconstructed Thrust Magnitude');
 
-figure;
-plot(recon.tau, recon.T, 'LineWidth', lw);
-grid on; box on;
-xlabel('\tau');
-ylabel('T');
-title('Reconstructed Thrust Magnitude');
-
-figure;
-plot(recon.tau, recon.x(:,9), 'LineWidth', lw);
-grid on; box on;
-xlabel('\tau');
-ylabel('m');
-title('Reconstructed Mass History');
+% figure;
+% plot(recon.tau, recon.x(:,9), 'LineWidth', lw);
+% grid on; box on;
+% xlabel('\tau');
+% ylabel('m');
+% title('Reconstructed Mass History');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % local functions
