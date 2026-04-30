@@ -294,7 +294,7 @@ for sat = 1:N_s
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Total circularization delta-v summary
+%% Total circularization delta-v summary
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 dv_circ_total_ND = sum(dv_circ_ND_all);
@@ -343,6 +343,7 @@ lw = 1.5;
 % xlabel('Satellite index');
 % ylabel('\Delta v [m/s]');
 % title('Circularization \Delta v per Satellite');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Circularization delta-v vs RAAN
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -360,28 +361,40 @@ for sat = 1:N_s
 end
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 bar(raan_circ_deg_all,dv_circ_m_s_all);
 grid on; box on;
-xlabel('RAAN [deg]');
-ylabel('\Delta v [m/s]');
-title('Circularization \Delta v vs RAAN');
+xlabel('RAAN [deg]','Interpreter','latex');
+ylabel('$\Delta v$ [m/s]','Interpreter','latex');
+title('Circularization $\Delta v$ vs RAAN','Interpreter','latex');
 xticks(raan_circ_deg_all);
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 semilogy(resnorm_circ_all,'o-','LineWidth',lw);
 grid on; box on;
-xlabel('Satellite index');
-ylabel('Terminal residual norm');
-title('Circularization Residual Norms');
+xlabel('Satellite index','Interpreter','latex');
+ylabel('Terminal residual norm','Interpreter','latex');
+title('Circularization Residual Norms','Interpreter','latex');
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 plot(final_mass_circ_all,'o-','LineWidth',lw);
 grid on; box on;
-xlabel('Satellite index');
-ylabel('Final mass');
-title('Final Mass After Circularization');
+xlabel('Satellite index','Interpreter','latex');
+ylabel('Final mass','Interpreter','latex');
+title('Final Mass After Circularization','Interpreter','latex');
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 hold on;
 for sat = 1:N_s
     x_circ = x_circ_all{sat};
@@ -391,9 +404,9 @@ for sat = 1:N_s
         'LineWidth',1.0);
 end
 grid on; box on;
-xlabel('\tau');
-ylabel('e = sqrt(f^2 + g^2)');
-title('Eccentricity During Circularization');
+xlabel('$\tau$','Interpreter','latex');
+ylabel('$e = \sqrt{f^2 + g^2}$','Interpreter','latex');
+title('Eccentricity During Circularization','Interpreter','latex');
 
 %% Trajectories
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -473,6 +486,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 hold on;
 
 for sat = 1:N_s
@@ -494,11 +510,14 @@ end
 
 earthy(1, 'Earth', 1,[0,0,0]);
 
+hEarth = findobj(gcf,'Type','patch','-or','Type','surface');
+set(hEarth(1),'HandleVisibility','off');
+
 grid on; box on; axis equal;
-xlabel('x');
-ylabel('y');
-zlabel('z');
-title('Full Trajectory of All Satellites (Transfer + Circularization)');
+xlabel('x','Interpreter','latex');
+ylabel('y','Interpreter','latex');
+zlabel('z','Interpreter','latex');
+title('Full Trajectory of All Satellites (Transfer + Circularization)','Interpreter','latex');
 legend('Location','bestoutside');
 view(3);
 
@@ -507,6 +526,9 @@ view(3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 hold on;
 
 for sat = 1:N_s
@@ -524,11 +546,14 @@ end
 
 earthy(1, 'Earth', 1,[0,0,0]);
 
+hEarth = findobj(gcf,'Type','patch','-or','Type','surface');
+set(hEarth(1),'HandleVisibility','off');
+
 grid on; box on; axis equal;
-xlabel('x');
-ylabel('y');
-zlabel('z');
-title('Final Orbits in Inertial Frame');
+xlabel('x','Interpreter','latex');
+ylabel('y','Interpreter','latex');
+zlabel('z','Interpreter','latex');
+title('Final Orbits in Inertial Frame','Interpreter','latex');
 legend('Location','bestoutside');
 view(3);
 
@@ -537,6 +562,9 @@ view(3);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 hold on;
 
 for sat = 1:N_s
@@ -554,11 +582,14 @@ end
 
 earthy(1, 'Earth', 1,[0,0,0]);
 
+hEarth = findobj(gcf,'Type','patch','-or','Type','surface');
+set(hEarth(1),'HandleVisibility','off');
+
 grid on; box on; axis equal;
-xlabel('x_R');
-ylabel('y_R');
-zlabel('z_R');
-title('Final Orbits in Earth-Rotating Frame');
+xlabel('$x_R$','Interpreter','latex');
+ylabel('$y_R$','Interpreter','latex');
+zlabel('$z_R$','Interpreter','latex');
+title('Final Orbits in Earth-Rotating Frame','Interpreter','latex');
 legend('Location','bestoutside');
 view(3);
 

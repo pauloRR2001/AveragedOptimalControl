@@ -237,12 +237,16 @@ end
 
 earthy(1, 'Earth', 1,[0,0,0]);
 
+% Prevent Earth object from appearing as an empty legend entry
+hEarth = findobj(gcf,'Type','patch','-or','Type','surface');
+set(hEarth(1),'HandleVisibility','off');
+
 grid on; box on; axis equal;
-xlabel('x');
-ylabel('y');
-zlabel('z');
-title('Full Reconstructed Controlled Trajectory Surfaces for All Satellites');
-legend('Location','bestoutside');
+xlabel('x', 'Interpreter', 'latex');
+ylabel('y', 'Interpreter', 'latex');
+zlabel('z', 'Interpreter', 'latex');
+title('Full Reconstructed Controlled Trajectory Surfaces for All Satellites', 'Interpreter', 'latex');
+legend('Location','bestoutside', 'Interpreter', 'latex');
 
 view(3);
 camlight headlight;
@@ -415,6 +419,9 @@ for sat = 1:N_s
 end
 
 earthy(1, 'Earth', 1, [0,0,0]);
+
+hEarth = findobj(gcf,'Type','patch','-or','Type','surface');
+set(hEarth(1),'HandleVisibility','off');
 
 grid on; box on; axis equal;
 xlabel('x');

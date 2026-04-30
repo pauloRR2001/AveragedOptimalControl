@@ -321,130 +321,154 @@ lw = 1.5;
 
 % Residual norm vs RAAN
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 semilogy(raan_deg_list,resnorm_all,'o-','LineWidth',lw);
 grid on; box on;
-xlabel('Target RAAN [deg]');
-ylabel('Terminal residual norm');
-title('Constellation Shooting Residual Norm vs Target RAAN');
+xlabel('Target RAAN [deg]','Interpreter','latex');
+ylabel('Terminal residual norm','Interpreter','latex');
+title('Constellation Shooting Residual Norm vs Target RAAN','Interpreter','latex');
 
 % Final mass vs RAAN
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 plot(raan_deg_list,final_mass_all,'o-','LineWidth',lw);
 grid on; box on;
-xlabel('Target RAAN [deg]');
-ylabel('Final mass');
-title('Final Mass vs Target RAAN');
+xlabel('Target RAAN [deg]','Interpreter','latex');
+ylabel('Final mass','Interpreter','latex');
+title('Final Mass vs Target RAAN','Interpreter','latex');
 
 % Hamiltonian drift vs RAAN
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 semilogy(raan_deg_list,H_drift_all,'o-','LineWidth',lw);
 grid on; box on;
-xlabel('Target RAAN [deg]');
-ylabel('max |\tilde{H}-\tilde{H}_0|');
-title('Averaged Hamiltonian Drift vs Target RAAN');
+xlabel('Target RAAN [deg]','Interpreter','latex');
+ylabel('$\\max\\,|\tilde{H}-\tilde{H}_0|$','Interpreter','latex');
+title('Averaged Hamiltonian Drift vs Target RAAN','Interpreter','latex');
 
 % Target h-k distribution
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 plot([target_all.h],[target_all.k],'o','LineWidth',lw); hold on;
 theta = linspace(0,2*pi,500);
 plot(rho_hk*cos(theta),rho_hk*sin(theta),'--','LineWidth',lw);
 plot(h0,k0,'kx','LineWidth',2,'MarkerSize',10);
 grid on; box on; axis equal;
-xlabel('h');
-ylabel('k');
-title('Target Plane Elements in h-k Space');
-legend('Target satellites','i = 15 deg circle','Initial GTO plane','Location','best');
+xlabel('$h$','Interpreter','latex');
+ylabel('$k$','Interpreter','latex');
+title('Target Plane Elements in $h$-$k$ Space','Interpreter','latex');
+legend('Target satellites','$i = 15\\,\\mathrm{deg}$ circle','Initial GTO plane','Location','best');
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 plot(raan_deg_list,iterations_all,'o-','LineWidth',lw);
 grid on; box on;
-xlabel('Target RAAN [deg]');
-ylabel('lsqnonlin iterations');
-title('Nonlinear Solver Iterations vs Target RAAN');
+xlabel('Target RAAN [deg]','Interpreter','latex');
+ylabel('$\mathrm{lsqnonlin}$ iterations','Interpreter','latex');
+title('Nonlinear Solver Iterations vs Target RAAN','Interpreter','latex');
 
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 bar(raan_deg_list,dv_m_s_all);
 grid on; box on;
-xlabel('Target RAAN [deg]');
-ylabel('\Delta v [m/s]');
-title('\Delta v vs Target RAAN');
+xlabel('Target RAAN [deg]','Interpreter','latex');
+ylabel('$\Delta v$ [m/s]','Interpreter','latex');
+title('$\Delta v$ vs Target RAAN','Interpreter','latex');
 xticks(raan_deg_list);
 
 % p,f,g,h,k histories for all satellites
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 for sat = 1:N_s
     tau = tau_all{sat};
     x = x_all{sat};
 
     subplot(3,2,1);
     plot(tau,x(:,1),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('p'); title('p');
+    ylabel('$p$','Interpreter','latex'); title('$p$','Interpreter','latex');
 
     subplot(3,2,2);
     plot(tau,x(:,2),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('f'); title('f');
+    ylabel('$f$','Interpreter','latex'); title('$f$','Interpreter','latex');
 
     subplot(3,2,3);
     plot(tau,x(:,3),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('g'); title('g');
+    ylabel('$g$','Interpreter','latex'); title('$g$','Interpreter','latex');
 
     subplot(3,2,4);
     plot(tau,x(:,4),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('h'); title('h');
+    ylabel('$h$','Interpreter','latex'); title('$h$','Interpreter','latex');
 
     subplot(3,2,5);
     plot(tau,x(:,5),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('k'); xlabel('\tau'); title('k');
+    ylabel('$k$','Interpreter','latex'); xlabel('$\tau$','Interpreter','latex'); title('$k$','Interpreter','latex');
 
     subplot(3,2,6);
     plot(tau,x(:,9),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('m'); xlabel('\tau'); title('mass');
+    ylabel('$m$','Interpreter','latex'); xlabel('$\tau$','Interpreter','latex'); title('mass','Interpreter','latex');
 end
 
-subplot(3,2,1); xlabel('\tau');
-subplot(3,2,2); xlabel('\tau');
-subplot(3,2,3); xlabel('\tau');
-subplot(3,2,4); xlabel('\tau');
+subplot(3,2,1); xlabel('$\tau$','Interpreter','latex');
+subplot(3,2,2); xlabel('$\tau$','Interpreter','latex');
+subplot(3,2,3); xlabel('$\tau$','Interpreter','latex');
+subplot(3,2,4); xlabel('$\tau$','Interpreter','latex');
 
-sgtitle('Averaged State Histories for All Satellites');
+sgtitle('Averaged State Histories for All Satellites','Interpreter','latex');
 
 % Costate histories for all satellites
 figure;
+set(gcf,'DefaultTextInterpreter','latex', ...
+        'DefaultAxesTickLabelInterpreter','latex', ...
+        'DefaultLegendInterpreter','latex');
 for sat = 1:N_s
     tau = tau_all{sat};
     lambda = lambda_all{sat};
 
     subplot(3,2,1);
     plot(tau,lambda(:,1),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('\lambda_p'); title('\lambda_p');
+    ylabel('$\lambda_p$','Interpreter','latex'); title('$\lambda_p$','Interpreter','latex');
 
     subplot(3,2,2);
     plot(tau,lambda(:,2),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('\lambda_f'); title('\lambda_f');
+    ylabel('$\lambda_f$','Interpreter','latex'); title('$\lambda_f$','Interpreter','latex');
 
     subplot(3,2,3);
     plot(tau,lambda(:,3),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('\lambda_g'); title('\lambda_g');
+    ylabel('$\lambda_g$','Interpreter','latex'); title('$\lambda_g$','Interpreter','latex');
 
     subplot(3,2,4);
     plot(tau,lambda(:,4),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('\lambda_h'); title('\lambda_h');
+    ylabel('$\lambda_h$','Interpreter','latex'); title('$\lambda_h$','Interpreter','latex');
 
     subplot(3,2,5);
     plot(tau,lambda(:,5),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('\lambda_k'); xlabel('\tau'); title('\lambda_k');
+    ylabel('$\lambda_k$','Interpreter','latex'); xlabel('$\tau$','Interpreter','latex'); title('$\lambda_k$','Interpreter','latex');
 
     subplot(3,2,6);
     plot(tau,lambda(:,9),'LineWidth',1.0); hold on; grid on; box on;
-    ylabel('\lambda_m'); xlabel('\tau'); title('\lambda_m');
+    ylabel('$\lambda_m$','Interpreter','latex'); xlabel('$\tau$','Interpreter','latex'); title('$\lambda_m$','Interpreter','latex');
 end
 
-subplot(3,2,1); xlabel('\tau');
-subplot(3,2,2); xlabel('\tau');
-subplot(3,2,3); xlabel('\tau');
-subplot(3,2,4); xlabel('\tau');
+subplot(3,2,1); xlabel('$\tau$','Interpreter','latex');
+subplot(3,2,2); xlabel('$\tau$','Interpreter','latex');
+subplot(3,2,3); xlabel('$\tau$','Interpreter','latex');
+subplot(3,2,4); xlabel('$\tau$','Interpreter','latex');
 
-sgtitle('Costate Histories for All Satellites');
+sgtitle('Costate Histories for All Satellites','Interpreter','latex');
 
 %% DV
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -554,6 +578,9 @@ if do_reconstruct_all
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     figure;
+    set(gcf,'DefaultTextInterpreter','latex', ...
+            'DefaultAxesTickLabelInterpreter','latex', ...
+            'DefaultLegendInterpreter','latex');
     hold on;
 
     for sat = 1:N_s
@@ -595,10 +622,10 @@ if do_reconstruct_all
     earthy(1, 'Earth', 1,[0,0,0]);
 
     grid on; box on; axis equal;
-    xlabel('x');
-    ylabel('y');
-    zlabel('z');
-    title('Full Reconstructed Controlled Trajectories for All Satellites');
+    xlabel('x','Interpreter','latex');
+    ylabel('y','Interpreter','latex');
+    zlabel('z','Interpreter','latex');
+    title('Full Reconstructed Controlled Trajectories for All Satellites','Interpreter','latex');
     legend('Location','bestoutside');
 
     view(3);
@@ -608,6 +635,9 @@ if do_reconstruct_all
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     figure;
+    set(gcf,'DefaultTextInterpreter','latex', ...
+            'DefaultAxesTickLabelInterpreter','latex', ...
+            'DefaultLegendInterpreter','latex');
     hold on;
 
     for sat = 1:N_s
@@ -627,11 +657,11 @@ if do_reconstruct_all
     earthy(1, 'Earth', 1,[0,0,0]);
 
     grid on; box on; axis equal;
-    xlabel('x');
-    ylabel('y');
-    zlabel('z');
-    title(sprintf('Target Orbits for %d Satellites, i = %.1f deg', ...
-        N_s, inc_f_deg));
+    xlabel('x','Interpreter','latex');
+    ylabel('y','Interpreter','latex');
+    zlabel('z','Interpreter','latex');
+    title(sprintf('Target Orbits for %d Satellites, $i = %.1f$ deg', ...
+        N_s, inc_f_deg),'Interpreter','latex');
     legend('Location','bestoutside');
 
     view(3);
